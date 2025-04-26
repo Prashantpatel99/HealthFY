@@ -4,8 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import RecipeDisplay from '@/components/RecipeDisplay';
 import { Recipe, UserPreferences } from '@/types';
-import { generateRecipeFromPreferences } from '@/data/dummyRecipes';
 import { Skeleton } from '@/components/ui/skeleton';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from "sonner";
 
 const RecipePage: React.FC = () => {
   const navigate = useNavigate();
@@ -13,7 +14,7 @@ const RecipePage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    const fetchRecipe = async () => {
+    const generateRecipe = async () => {
       try {
         // Get preferences from session storage
         const preferencesString = sessionStorage.getItem('userPreferences');
@@ -25,22 +26,26 @@ const RecipePage: React.FC = () => {
         
         const preferences: UserPreferences = JSON.parse(preferencesString);
         
-        // Simulate API request delay
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        
-        // Generate recipe based on preferences
-        const generatedRecipe = generateRecipeFromPreferences(preferences);
-        
-        setRecipe(generatedRecipe);
+        // Call our AI function to generate the recipe
+        const { data, error } = await supabase.functions.invoke('generate-recipe', {
+          body: { preferences }
+        });
+
+        if (error) {
+          throw new Error(error.message);
+        }
+
+        setRecipe(data);
         setLoading(false);
       } catch (error) {
         console.error('Failed to generate recipe:', error);
+        toast.error("Failed to generate recipe. Please try again.");
         setLoading(false);
         navigate('/');
       }
     };
 
-    fetchRecipe();
+    generateRecipe();
   }, [navigate]);
 
   return (
