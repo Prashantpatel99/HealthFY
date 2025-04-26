@@ -1,5 +1,5 @@
 
-import { supabase } from './supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 export async function signInWithEmail(email: string, password: string) {
@@ -34,20 +34,6 @@ export async function signUpWithEmail(email: string, password: string) {
     toast.error('An error occurred during sign up. Please try again.');
     return false;
   }
-}
-
-export async function signInWithGoogle() {
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: window.location.origin
-    }
-  });
-  if (error) {
-    toast.error(error.message);
-    return false;
-  }
-  return true;
 }
 
 export async function signOut() {
