@@ -11,6 +11,7 @@ import Recipe from "./pages/Recipe";
 import Profile from "./pages/Profile";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import SavedRecipes from "./pages/SavedRecipes";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +28,7 @@ const App = () => (
             <Route path="/profile" element={<Profile />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/saved" element={<SavedRecipes />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
