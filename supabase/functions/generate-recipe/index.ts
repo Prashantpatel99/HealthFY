@@ -16,6 +16,8 @@ serve(async (req) => {
 
   try {
     const { preferences } = await req.json();
+    
+    console.log("Processing request with preferences:", JSON.stringify(preferences));
 
     const prompt = `Generate a detailed recipe that meets these requirements:
     - Dietary preferences: ${preferences.dietaryPreferences.join(', ')}
@@ -65,11 +67,43 @@ serve(async (req) => {
     });
 
     const data = await response.json();
-    const generatedRecipe = JSON.parse(data.choices[0].message.content);
+    
+    // Log the response for debugging
+    console.log("OpenAI API Status:", response.status);
+    
+    // Check if the API returned an error
+    if (!response.ok) {
+      console.error("OpenAI API Error:", data);
+      throw new Error(`OpenAI API error: ${data.error?.message || 'Unknown error'}`);
+    }
+    
+    // Check if choices array exists
+    if (!data.choices || data.choices.length === 0) {
+      console.error("No choices returned from OpenAI:", data);
+      throw new Error("No recipe was generated");
+    }
 
-    return new Response(JSON.stringify(generatedRecipe), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    // Check if message content exists
+    const content = data.choices[0].message?.content;
+    if (!content) {
+      console.error("No content in response:", data.choices[0]);
+      throw new Error("Empty recipe content");
+    }
+    
+    // Try to parse the JSON content
+    try {
+      const generatedRecipe = JSON.parse(content);
+      
+      // Add id to recipe
+      generatedRecipe.id = crypto.randomUUID();
+      
+      return new Response(JSON.stringify(generatedRecipe), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    } catch (parseError) {
+      console.error("Failed to parse recipe JSON:", content);
+      throw new Error("Invalid recipe format returned");
+    }
   } catch (error) {
     console.error('Error in generate-recipe function:', error);
     return new Response(JSON.stringify({ error: error.message }), {
