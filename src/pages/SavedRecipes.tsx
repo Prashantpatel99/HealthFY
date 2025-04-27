@@ -9,9 +9,17 @@ import { Recipe } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 
+// Define a type for the saved recipe data we receive from Supabase
+interface SavedRecipe {
+  id: string;
+  recipe_id: string;
+  saved_at: string;
+  user_id: string;
+}
+
 const SavedRecipes: React.FC = () => {
   const navigate = useNavigate();
-  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [recipes, setRecipes] = useState<SavedRecipe[]>([]);
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
@@ -41,8 +49,8 @@ const SavedRecipes: React.FC = () => {
         }
         
         if (data && data.length > 0) {
-          // For now, we'll just show recipe IDs since we don't store the full recipe details
-          setRecipes(data as any);
+          // Now we're properly typing the data as SavedRecipe[]
+          setRecipes(data as SavedRecipe[]);
         }
         
         setLoading(false);
